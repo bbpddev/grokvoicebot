@@ -1,0 +1,32 @@
+[project]
+name = "grok-itsd-voicebot"
+version = "0.1.0"
+description = "IT service desk voicebot using Grok Voice realtime websocket and a ticket/knowledge database"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115.0",
+  "uvicorn>=0.30.0",
+  "sqlalchemy>=2.0.32",
+  "pydantic>=2.8.2",
+  "pydantic-settings>=2.4.0",
+  "websockets>=12.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.2",
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"grokvoicebot" = ["static/*.html"]
