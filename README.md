@@ -46,6 +46,17 @@ source .venv/bin/activate
 pip install -e .
 ```
 
+
+> If `pip install -e .` fails in restricted environments, try:
+> ```bash
+> pip install --no-build-isolation -e .
+> ```
+> or:
+> ```bash
+> pip install -r requirements.txt
+> pip install --no-build-isolation -e .
+> ```
+
 ### 2) Set environment variables
 
 ```bash
@@ -77,10 +88,11 @@ Open:
 http://localhost:8000/
 ```
 
-The page includes:
-- browser voice input (SpeechRecognition)
-- knowledge search testing
-- ticket create/status/update testing
+The page now runs a **webpage-based voicebot** flow:
+- browser microphone input (SpeechRecognition)
+- assistant endpoint `/assistant/respond` for conversational ticket/knowledge actions
+- browser text-to-speech playback for bot responses
+- direct endpoint testing tools for troubleshooting
 
 ### 5) Run voice agent
 
@@ -188,3 +200,36 @@ If your goal is to move from prototype to a working ITSD voicebot quickly, follo
 - Add observability (OpenTelemetry traces, structured logs).
 - Add SSO identity lookup and CMDB integration.
 - Use a message queue for async follow-up actions.
+
+
+## Database design for troubleshooting + tickets
+
+The database is built with three core tables:
+
+- `knowledge_articles`: troubleshooting runbooks and KB content (`title`, `category`, `content`, `tags`, `source`).
+- `tickets`: ticket identity and current state (`ticket_number`, requester info, issue details, `status`, `priority`, assignment).
+- `ticket_updates`: chronological update log used by the bot when giving ticket progress updates.
+
+How ticket references work:
+- New tickets get a generated ticket number like `ITSD-YYYYMMDD-0001`.
+- APIs accept either `ticket_number` or numeric DB ID through `ticket_ref`.
+
+Useful endpoints:
+- `POST /knowledge/articles` to add troubleshooting knowledge
+- `POST /knowledge/search` to retrieve troubleshooting guidance
+- `POST /tickets` to create/save ticket details
+- `POST /tickets/status` for current state
+- `POST /tickets/details` for full details + update timeline
+- `POST /tickets/update` to append an update and change status
+
+
+## Dummy data for quick testing
+
+To load sample troubleshooting articles and sample tickets with update histories, call:
+
+```bash
+curl -X POST http://localhost:8000/seed/dummy
+```
+
+This inserts data only once (idempotent behavior) and returns how many records were created.
+

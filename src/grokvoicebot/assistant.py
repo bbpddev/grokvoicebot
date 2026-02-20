@@ -2,13 +2,24 @@ from __future__ import annotations
 
 import re
 
-from .services import create_ticket, get_ticket_status, search_knowledge, update_ticket
+from .services import create_ticket, get_ticket_details, get_ticket_status, search_knowledge, update_ticket
 
 
 DEFAULT_REQUESTER = {
     "requester_name": "Web User",
     "requester_email": "webuser@example.com",
 }
+
+
+TICKET_REF_RE = re.compile(r"(itsd-\d{8}-\d{4}|\d+)", re.IGNORECASE)
+
+
+def _extract_ticket_ref(text: str) -> str | None:
+    match = TICKET_REF_RE.search(text)
+    if not match:
+        return None
+    ref = match.group(1)
+    return ref.upper() if ref.lower().startswith("itsd-") else ref
 
 
 def _format_knowledge(matches: list[dict]) -> str:
@@ -22,34 +33,41 @@ def handle_assistant_utterance(utterance: str) -> dict:
     text = utterance.strip()
     lowered = text.lower()
 
-    status_match = re.search(r"ticket\s*(?:id\s*)?(\d+)", lowered)
-    if ("status" in lowered or "check" in lowered) and status_match:
-        ticket_id = int(status_match.group(1))
-        result = get_ticket_status(ticket_id)
+    ticket_ref = _extract_ticket_ref(lowered)
+    if ("status" in lowered or "check" in lowered) and ticket_ref:
+        result = get_ticket_status(ticket_ref)
         if "error" in result:
             return {"action": "ticket_status", "result": result, "response": result["error"]}
         response = (
-            f"Ticket {result['ticket_id']} is currently {result['status']} "
+            f"Ticket {result['ticket_number']} is currently {result['status']} "
             f"with {result['priority']} priority."
         )
         return {"action": "ticket_status", "result": result, "response": response}
 
-    update_match = re.search(r"update\s+ticket\s*(\d+)", lowered)
-    if update_match:
-        ticket_id = int(update_match.group(1))
+    if "details" in lowered and ticket_ref:
+        result = get_ticket_details(ticket_ref)
+        if "error" in result:
+            return {"action": "ticket_details", "result": result, "response": result["error"]}
+        response = (
+            f"Ticket {result['ticket_number']} is {result['status']} and has "
+            f"{len(result['updates'])} update entries."
+        )
+        return {"action": "ticket_details", "result": result, "response": response}
+
+    if "update" in lowered and ticket_ref:
         status = "in_progress"
         if "resolved" in lowered:
             status = "resolved"
         elif "open" in lowered:
             status = "open"
         comment = text
-        result = update_ticket(ticket_id=ticket_id, status=status, comment=comment, author="web-voicebot")
+        result = update_ticket(ticket_ref=ticket_ref, status=status, comment=comment, author="web-voicebot")
         if "error" in result:
             return {"action": "ticket_update", "result": result, "response": result["error"]}
         return {
             "action": "ticket_update",
             "result": result,
-            "response": f"Done. Ticket {ticket_id} was updated to {status}.",
+            "response": f"Done. Ticket {result['ticket_number']} was updated to {status}.",
         }
 
     if "create" in lowered and "ticket" in lowered:
@@ -73,7 +91,7 @@ def handle_assistant_utterance(utterance: str) -> dict:
         return {
             "action": "ticket_create",
             "result": result,
-            "response": f"Ticket {result['ticket_id']} created with {result['priority']} priority.",
+            "response": f"Ticket {result['ticket_number']} created with {result['priority']} priority.",
         }
 
     result = search_knowledge(text)

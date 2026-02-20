@@ -44,8 +44,8 @@ TOOLS = [
         "description": "Get current status for an IT support ticket",
         "parameters": {
             "type": "object",
-            "properties": {"ticket_id": {"type": "integer"}},
-            "required": ["ticket_id"],
+            "properties": {"ticket_ref": {"type": "string"}},
+            "required": ["ticket_ref"],
         },
     },
     {
@@ -54,12 +54,12 @@ TOOLS = [
         "parameters": {
             "type": "object",
             "properties": {
-                "ticket_id": {"type": "integer"},
+                "ticket_ref": {"type": "string"},
                 "comment": {"type": "string"},
                 "status": {"type": "string"},
                 "author": {"type": "string"},
             },
-            "required": ["ticket_id", "comment", "status"],
+            "required": ["ticket_ref", "comment", "status"],
         },
     },
 ]
@@ -97,7 +97,7 @@ def _execute_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
         return create_ticket(**data.model_dump())
     if name == "get_ticket_status":
         data = TicketStatusInput.model_validate(args)
-        return get_ticket_status(data.ticket_id)
+        return get_ticket_status(data.ticket_ref)
     if name == "update_ticket":
         data = TicketUpdateInput.model_validate(args)
         return update_ticket(**data.model_dump())
