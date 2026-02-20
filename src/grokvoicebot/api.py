@@ -4,8 +4,7 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 
 from .db import init_db
-from .assistant import handle_assistant_utterance
-from .schemas import AssistantUtteranceInput, KnowledgeSearchInput, TicketCreateInput, TicketStatusInput, TicketUpdateInput
+from .schemas import KnowledgeSearchInput, TicketCreateInput, TicketStatusInput, TicketUpdateInput
 from .services import create_ticket, get_ticket_status, search_knowledge, seed_knowledge, update_ticket
 
 app = FastAPI(title="Grok ITSD Voicebot Service")
@@ -41,10 +40,6 @@ def tickets_status(payload: TicketStatusInput) -> dict:
 def tickets_update(payload: TicketUpdateInput) -> dict:
     return update_ticket(**payload.model_dump())
 
-
-@app.post("/assistant/respond")
-def assistant_respond(payload: AssistantUtteranceInput) -> dict:
-    return handle_assistant_utterance(payload.utterance)
 
 @app.get("/", include_in_schema=False)
 def index() -> FileResponse:

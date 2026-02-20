@@ -3,7 +3,7 @@ name = "grok-itsd-voicebot"
 version = "0.1.0"
 description = "IT service desk voicebot using Grok Voice realtime websocket and a ticket/knowledge database"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115.0",
   "uvicorn>=0.30.0",

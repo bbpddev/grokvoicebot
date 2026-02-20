@@ -46,17 +46,6 @@ source .venv/bin/activate
 pip install -e .
 ```
 
-
-> If `pip install -e .` fails in restricted environments, try:
-> ```bash
-> pip install --no-build-isolation -e .
-> ```
-> or:
-> ```bash
-> pip install -r requirements.txt
-> pip install --no-build-isolation -e .
-> ```
-
 ### 2) Set environment variables
 
 ```bash
@@ -88,11 +77,10 @@ Open:
 http://localhost:8000/
 ```
 
-The page now runs a **webpage-based voicebot** flow:
-- browser microphone input (SpeechRecognition)
-- assistant endpoint `/assistant/respond` for conversational ticket/knowledge actions
-- browser text-to-speech playback for bot responses
-- direct endpoint testing tools for troubleshooting
+The page includes:
+- browser voice input (SpeechRecognition)
+- knowledge search testing
+- ticket create/status/update testing
 
 ### 5) Run voice agent
 

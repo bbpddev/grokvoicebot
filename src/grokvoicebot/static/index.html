@@ -3,83 +3,140 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Grok ITSD Web Voicebot</title>
+    <title>Grok ITSD Voicebot Tester</title>
     <style>
-      :root { --bg:#0b1020; --panel:#141b34; --text:#eaf0ff; --muted:#a8b3d1; --accent:#5aa8ff; }
-      body { margin:0; font-family:Inter,system-ui,Arial,sans-serif; background:linear-gradient(120deg,#0b1020,#131d3c 65%); color:var(--text); }
-      .container { max-width:1100px; margin:24px auto; padding:0 16px; }
-      .grid { display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); }
-      .card { background:rgba(20,27,52,.85); border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:14px; }
-      .muted { color:var(--muted); }
-      label { display:block; font-size:12px; margin-top:10px; color:var(--muted); }
-      input, textarea, select, button { width:100%; box-sizing:border-box; border-radius:8px; border:1px solid #32406f; background:#0f1730; color:var(--text); padding:10px; }
-      textarea { min-height:90px; }
-      button { margin-top:10px; border:none; cursor:pointer; background:var(--accent); color:white; font-weight:600; }
-      button.secondary { background:#334a86; }
-      #chatLog { min-height:220px; max-height:380px; overflow:auto; background:#080d1f; border:1px solid #2c3862; border-radius:10px; padding:10px; }
-      .msg { margin:8px 0; padding:8px; border-radius:8px; }
-      .user { background:#1f2d54; }
-      .bot { background:#163729; }
-      #output { margin-top:16px; white-space:pre-wrap; background:#080d1f; border:1px solid #2c3862; border-radius:12px; padding:12px; min-height:120px; }
-      .pill { display:inline-block; padding:2px 8px; border-radius:999px; background:#20315b; color:#b9ccff; font-size:12px; }
+      :root {
+        --bg: #0b1020;
+        --panel: #141b34;
+        --text: #eaf0ff;
+        --muted: #a8b3d1;
+        --accent: #5aa8ff;
+        --ok: #22c55e;
+      }
+      body {
+        margin: 0;
+        font-family: Inter, system-ui, Arial, sans-serif;
+        background: linear-gradient(120deg, #0b1020, #131d3c 65%);
+        color: var(--text);
+      }
+      .container {
+        max-width: 1000px;
+        margin: 24px auto;
+        padding: 0 16px;
+      }
+      .header {
+        margin-bottom: 16px;
+      }
+      .muted { color: var(--muted); }
+      .grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+      .card {
+        background: rgba(20, 27, 52, 0.85);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 14px;
+        backdrop-filter: blur(3px);
+      }
+      label { display:block; font-size: 12px; margin-top: 10px; color: var(--muted); }
+      input, textarea, select, button {
+        width: 100%; box-sizing: border-box; border-radius: 8px; border: 1px solid #32406f;
+        background: #0f1730; color: var(--text); padding: 10px;
+      }
+      textarea { min-height: 80px; }
+      button {
+        margin-top: 10px; cursor: pointer; border: none; background: var(--accent);
+        color: #fff; font-weight: 600;
+      }
+      button.secondary { background: #334a86; }
+      #output {
+        margin-top: 16px; white-space: pre-wrap; background: #080d1f; border: 1px solid #2c3862;
+        border-radius: 12px; padding: 12px; min-height: 170px;
+      }
+      .row { display: grid; gap: 8px; grid-template-columns: 1fr 1fr; }
+      .pill { display:inline-block; padding: 2px 8px; border-radius: 999px; background:#20315b; color:#b9ccff; font-size:12px; }
+      .ok { color: var(--ok); }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1>ITSD Web Voicebot</h1>
-      <p class="muted">Webpage-based voicebot for ticketing and troubleshooting knowledge retrieval.</p>
-      <span class="pill">Route: <code>/assistant/respond</code></span>
+      <div class="header">
+        <h1>ITSD Voicebot Test Console</h1>
+        <p class="muted">Use this page to test knowledge retrieval, ticket creation/status/update, and browser voice input.</p>
+        <span class="pill">Backend: FastAPI + SQLAlchemy</span>
+      </div>
 
-      <div class="grid" style="margin-top: 12px;">
+      <div class="grid">
         <section class="card">
-          <h3>🗣️ Voicebot Conversation</h3>
-          <p class="muted">Click start, speak, then send to the assistant. Bot replies are also spoken using browser TTS.</p>
+          <h3>🎤 Voice Input</h3>
+          <p class="muted">Uses browser SpeechRecognition (Chrome/Edge).</p>
           <button id="startVoice">Start Listening</button>
           <div class="muted" id="voiceStatus">Idle</div>
-          <label>Recognized utterance</label>
-          <textarea id="recognizedText" placeholder="e.g. create ticket for vpn not working"></textarea>
-          <button id="sendToBot">Send to Voicebot</button>
-          <label>Conversation</label>
-          <div id="chatLog"></div>
+          <label>Recognized text</label>
+          <textarea id="recognizedText" placeholder="Speak a command like: create ticket for VPN issue"></textarea>
+          <button id="runVoiceIntent" class="secondary">Run Heuristic Intent</button>
         </section>
 
         <section class="card">
-          <h3>🧪 Direct API Testing</h3>
-          <p class="muted">Keep direct endpoint testing for troubleshooting.</p>
-          <label>Knowledge query</label>
-          <input id="knowledgeQuery" placeholder="vpn" />
-          <button class="secondary" onclick="searchKnowledge()">Search Knowledge</button>
+          <h3>📚 Search Knowledge</h3>
+          <label>Query</label>
+          <input id="knowledgeQuery" placeholder="vpn, mfa, outlook" />
+          <button onclick="searchKnowledge()">Search</button>
+        </section>
 
-          <label>Ticket status ID</label>
+        <section class="card">
+          <h3>🧾 Create Ticket</h3>
+          <label>Name</label>
+          <input id="name" placeholder="Jane Doe" />
+          <label>Email</label>
+          <input id="email" placeholder="jane@example.com" />
+          <label>Title</label>
+          <input id="title" placeholder="VPN can't connect" />
+          <label>Description</label>
+          <textarea id="description" placeholder="Include symptoms and impact"></textarea>
+          <label>Priority</label>
+          <select id="priority">
+            <option>low</option><option selected>medium</option><option>high</option>
+          </select>
+          <button onclick="createTicket()">Create Ticket</button>
+        </section>
+
+        <section class="card">
+          <h3>🔎 Ticket Status</h3>
+          <label>Ticket ID</label>
           <input id="statusTicketId" type="number" placeholder="1" />
-          <button class="secondary" onclick="getStatus()">Get Ticket Status</button>
+          <button onclick="getStatus()">Get Status</button>
 
-          <label>Raw output</label>
-          <div id="output">Ready</div>
+          <h3 style="margin-top:14px">✏️ Update Ticket</h3>
+          <div class="row">
+            <div>
+              <label>Ticket ID</label>
+              <input id="updateTicketId" type="number" placeholder="1" />
+            </div>
+            <div>
+              <label>Status</label>
+              <select id="updateStatus">
+                <option>open</option><option>in_progress</option><option>resolved</option>
+              </select>
+            </div>
+          </div>
+          <label>Author</label>
+          <input id="author" value="voicebot-ui" />
+          <label>Comment</label>
+          <textarea id="comment" placeholder="Technician investigating issue"></textarea>
+          <button onclick="updateTicket()">Update Ticket</button>
         </section>
       </div>
+
+      <div id="output">Ready <span class="ok">✓</span></div>
     </div>
 
     <script>
       const output = document.getElementById('output');
       const voiceStatus = document.getElementById('voiceStatus');
       const recognizedText = document.getElementById('recognizedText');
-      const chatLog = document.getElementById('chatLog');
-
-      function appendMessage(role, text) {
-        const div = document.createElement('div');
-        div.className = `msg ${role}`;
-        div.textContent = `${role === 'user' ? 'You' : 'Voicebot'}: ${text}`;
-        chatLog.appendChild(div);
-        chatLog.scrollTop = chatLog.scrollHeight;
-      }
-
-      function speak(text) {
-        if (!('speechSynthesis' in window)) return;
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = 'en-US';
-        window.speechSynthesis.speak(utter);
-      }
 
       function log(data) {
         const stamp = new Date().toLocaleTimeString();
@@ -95,27 +152,54 @@
         return res.json();
       }
 
-      async function sendToVoicebot() {
-        const utterance = recognizedText.value.trim();
-        if (!utterance) return;
-        appendMessage('user', utterance);
-        const data = await postJson('/assistant/respond', { utterance });
-        log(data);
-        if (data.response) {
-          appendMessage('bot', data.response);
-          speak(data.response);
-        }
-      }
-
       async function searchKnowledge() {
         log(await postJson('/knowledge/search', { query: document.getElementById('knowledgeQuery').value }));
       }
 
-      async function getStatus() {
-        log(await postJson('/tickets/status', { ticket_id: Number(document.getElementById('statusTicketId').value) }));
+      async function createTicket() {
+        log(await postJson('/tickets', {
+          requester_name: document.getElementById('name').value,
+          requester_email: document.getElementById('email').value,
+          title: document.getElementById('title').value,
+          description: document.getElementById('description').value,
+          priority: document.getElementById('priority').value,
+        }));
       }
 
-      document.getElementById('sendToBot').addEventListener('click', sendToVoicebot);
+      async function getStatus() {
+        log(await postJson('/tickets/status', {
+          ticket_id: Number(document.getElementById('statusTicketId').value)
+        }));
+      }
+
+      async function updateTicket() {
+        log(await postJson('/tickets/update', {
+          ticket_id: Number(document.getElementById('updateTicketId').value),
+          status: document.getElementById('updateStatus').value,
+          author: document.getElementById('author').value,
+          comment: document.getElementById('comment').value,
+        }));
+      }
+
+      async function runHeuristicIntent() {
+        const text = recognizedText.value.toLowerCase().trim();
+        if (!text) {
+          log({ error: 'No recognized text found.' });
+          return;
+        }
+
+        if (text.includes('status') || text.includes('ticket')) {
+          const match = text.match(/\d+/);
+          if (match) {
+            log(await postJson('/tickets/status', { ticket_id: Number(match[0]) }));
+            return;
+          }
+        }
+
+        log(await postJson('/knowledge/search', { query: text }));
+      }
+
+      document.getElementById('runVoiceIntent').addEventListener('click', runHeuristicIntent);
 
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
@@ -129,7 +213,7 @@
         recognition.onerror = (e) => { voiceStatus.textContent = `Error: ${e.error}`; };
         recognition.onresult = (event) => {
           recognizedText.value = event.results[0][0].transcript;
-          voiceStatus.textContent = 'Captured. Click Send to Voicebot';
+          voiceStatus.textContent = 'Captured. Click "Run Heuristic Intent"';
         };
 
         document.getElementById('startVoice').addEventListener('click', () => recognition.start());

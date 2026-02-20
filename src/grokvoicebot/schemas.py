@@ -22,7 +22,3 @@ class TicketUpdateInput(BaseModel):
     comment: str
     status: str
     author: str = "voicebot"
-
-
-class AssistantUtteranceInput(BaseModel):
-    utterance: str = Field(min_length=2)
